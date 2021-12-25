@@ -1,0 +1,10 @@
+gotmpl_docker_address: !unsafe '{{ GetInterfaceIP "docker0" }}'
+gotmpl_private_address: !unsafe "{{ GetPrivateIP }}"
+
+docker_config:
+  dns:
+    - "172.17.0.1"
+  log-driver: "json-file"
+  log-opts:
+    max-size: "16m"
+    max-file: "3"

@@ -1,0 +1,56 @@
+consul_version: "1.11.1"
+consul_servers:
+  - 192.168.130.10
+  - 192.168.130.20
+  - 192.168.230.10
+  - 192.168.230.1
+  - 192.168.175.83
+consul_gossip: "{{ lookup('hashi_vault', 'secret/data/gossip:consul') }}"
+
+consul_unit: |
+  [Unit]
+  Description="HashiCorp Consul - A service mesh solution"
+  Documentation=https://www.consul.io/
+  Requires=network-online.target
+  BindsTo=docker.service
+  After=network-online.target
+  DefaultDependencies=no
+  ConditionFileNotEmpty={{ consul_dirs.main.path }}/consul.json
+
+  [Service]
+  User=consul
+  Group=consul
+  ExecStart=/usr/bin/consul agent -config-file={{ consul_dirs.main.path }}/consul.json -config-dir={{ consul_dirs.configs.path }} -config-dir={{ consul_dirs.services.path }}
+  ExecReload=/bin/kill --signal HUP $MAINPID
+  KillMode=process
+  KillSignal=SIGTERM
+  Restart=on-failure
+  LimitNOFILE=65536
+
+  [Install]
+  WantedBy=multi-user.target
+
+consul_config:
+  datacenter: "oikumene"
+  encrypt: "{{ consul_gossip }}"
+
+  data_dir: "/var/lib/consul/"
+
+  enable_syslog: false
+  log_level: "info"
+
+  bind_addr: "{{ gotmpl_private_address }}"
+  addresses:
+    http: "127.0.0.1 {{ gotmpl_private_address }} {{ gotmpl_docker_address }}"
+    dns: "127.0.0.1 {{ gotmpl_private_address }}"
+  ports:
+    grpc: 8502
+
+  connect:
+    enabled: true
+
+  enable_central_service_config: true
+  enable_local_script_checks: true
+
+  server: false
+  retry_join: "{{ consul_servers }}"

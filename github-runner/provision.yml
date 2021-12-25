@@ -1,0 +1,107 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: Add git repository
+      apt_repository:
+        repo: "ppa:git-core/ppa"
+
+    - name: Install packages
+      apt:
+        name:
+          - "bzip2"
+          - "jq"
+          - "rpm"
+          - "curl"
+          - "git"
+          - "awscli"
+          - "wget"
+          - "build-essential"
+          - "unzip"
+
+          - "ansible"
+          - "ansible-lint"
+          - "yamllint"
+        state: latest
+        install_recommends: false
+
+    - name: Install python
+      apt:
+        name:
+          - "python3-pip"
+          - "python3-dev"
+          - "python3-setuptools"
+          - "virtualenv"
+        install_recommends: false
+
+    - name: Install pip packages
+      pip:
+        name:
+          - "docker-compose"
+          - "hvac"
+          - "jc"
+          - "jmespath"
+
+          - "python-vagrant"
+          - "molecule"
+          - "molecule-vagrant"
+          - "molecule[lint]"
+          - "pytest"
+          - "pytest-testinfra"
+
+    - name: Install Docker CE
+      apt:
+        name:
+          - "docker-ce"
+          - "docker-ce-cli"
+          - "containerd.io"
+        install_recommends: false
+
+    - name: Create /etc/docker
+      file:
+        dest: "/etc/docker"
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Configure docker
+      copy:
+        content: "{{ docker_config | to_nice_json }}"
+        dest: "/etc/docker/daemon.json"
+        owner: root
+        group: root
+        mode: 0600
+
+    - name: Enable docker
+      service:
+        name: docker
+        enabled: true
+
+    - name: Install VirtualBox
+      apt:
+        name: "virtualbox"
+        install_recommends: false
+
+    - name: Add users to docker and virtialbox group
+      user:
+        name: "{{ item }}"
+        groups: 
+          - docker
+          - vboxusers
+        append: true
+      loop:
+          - ubuntu
+          - nahsi
+
+    - name: Install github-runner dependencies
+      apt:
+        name:
+          - liblttng-ust0
+          - libkrb5-3
+          - zlib1g
+        state: present
+        install_recommends: false
+
+  roles:
+    - consul
+    - nomad

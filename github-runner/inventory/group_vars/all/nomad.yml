@@ -1,0 +1,35 @@
+nomad_version: "1.2.3"
+
+nomad_config:
+  region: "oikumene"
+  datacenter: "github"
+
+  data_dir: "/var/lib/nomad"
+
+  bind_addr: "{{ gotmpl_private_address }}"
+
+  log_level: "info"
+  enable_syslog: false
+
+  client:
+    enabled: true
+    servers:
+      - "nomad.service.consul:4647"
+
+  consul:
+    address: "127.0.0.1:8500"
+
+  vault:
+    enabled: true
+    address: "http://vault.service.consul:8200"
+
+  plugin:
+    docker:
+      config:
+        endpoint: "unix:///var/run/docker.sock"
+        volumes:
+          enabled: true
+
+    raw_exec:
+      config:
+        enabled: true

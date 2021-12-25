@@ -1,0 +1,5 @@
+roles:
+  - src: nahsi.ansible_consul
+    name: consul
+  - src: nahsi.ansible_nomad
+    name: nomad
